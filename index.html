@@ -215,7 +215,7 @@
         #transactionHistory {
             margin-top: 20px;
             padding: 10px;
-            background: rgba(255, 255, 255, 0.8);
+            background: rgba(255, 255, 0.8);
             border-radius: 10px;
             max-height: 150px;
             overflow-y: auto;
@@ -353,13 +353,8 @@
             }
         };
 
-        // Подключение AGW Wallet с отладкой (временно закомментировано)
+        // Подключение AGW Wallet с отладкой
         connectWalletBtn.addEventListener('click', async () => {
-            console.log('Connect Wallet button clicked');
-            resultPopup.textContent = 'Wallet connection logic is temporarily disabled for debugging.';
-            resultPopup.classList.add('visible');
-
-            /*
             try {
                 console.log('Step 1: Generating test EOA...');
                 const privateKey = generatePrivateKey();
@@ -417,7 +412,6 @@
                 resultPopup.textContent = `Failed to connect AGW Wallet: ${error.message}`;
                 resultPopup.classList.add('visible');
             }
-            */
         });
 
         // Функция для добавления записи в историю транзакций
@@ -442,7 +436,7 @@
 
         // Обновление значений при движении ползунка
         const updateRangeValues = () => {
-            console.log('updateRangeValues called'); // Отладка
+            console.log('updateRangeValues called');
             maxRange = parseInt(rangeSlider.value);
             console.log('Slider value changed to:', maxRange);
 
