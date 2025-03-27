@@ -256,7 +256,7 @@
     <div id="winPoolPopup"></div>
 
     <!-- Load dependencies via CDN -->
-    <script src="https://unpkg.com/viem@2.21.1/dist/umd/index.js"></script>
+    <script src="https://unpkg.com/viem@1.21.0/dist/umd/index.js"></script>
     <script src="https://unpkg.com/@abstract-foundation/agw-client@1.5.0/dist/index.umd.js"></script>
     <script>
         // Check if libraries are loaded
@@ -269,6 +269,9 @@
 
         if (!createAbstractClient || !http || !generatePrivateKey || !privateKeyToAccount || !parseUnits || !formatUnits) {
             console.error('Required libraries (viem or AGWClient) failed to load. Please check CDN links.');
+            resultPopup.textContent = 'Failed to load required libraries. Please refresh the page.';
+            resultPopup.classList.add('visible');
+            throw new Error('Library loading failed');
         }
 
         const rangeSlider = document.getElementById('rangeSlider');
@@ -358,6 +361,7 @@
             try {
                 console.log('Step 1: Generating test EOA...');
                 const privateKey = generatePrivateKey();
+                console.log('Private key generated:', privateKey);
                 const signer = privateKeyToAccount(privateKey);
                 console.log('Test EOA generated:', signer.address);
 
