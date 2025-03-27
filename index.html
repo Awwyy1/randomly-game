@@ -40,7 +40,7 @@
             color: white;
             font-family: 'Chewy', cursive;
             font-size: 20px;
-            transition: transform 0.3s ease, background 0.5s ease; /* Анимация для пула */
+            transition: transform 0.3s ease, background 0.5s ease; /* Animation for pool */
         }
 
         .pool span {
@@ -50,7 +50,7 @@
 
         .pool.refill {
             transform: scale(1.1);
-            background: linear-gradient(45deg, #ff6f61, #ff9a8b); /* Цвет при пополнении */
+            background: linear-gradient(45deg, #ff6f61, #ff9a8b); /* Color on refill */
         }
 
         h1 {
@@ -131,7 +131,7 @@
             font-weight: bold;
         }
 
-        /* Анимация для потенциального выигрыша */
+        /* Animation for potential win */
         #potentialWin {
             transition: color 0.3s ease, transform 0.3s ease;
         }
@@ -141,7 +141,7 @@
             color: #2a5298;
         }
 
-        /* Анимация для статуса кошелька */
+        /* Animation for wallet status */
         #walletStatus, #penguBalance {
             opacity: 0;
             transform: translateY(10px);
@@ -153,7 +153,7 @@
             transform: translateY(0);
         }
 
-        /* Анимация для списания PENGU */
+        /* Animation for spending PENGU */
         #penguBalance.spend {
             color: #ff6f61;
             transform: scale(1.1);
@@ -211,11 +211,11 @@
             transform: translate(-50%, -50%) scale(1);
         }
 
-        /* История транзакций */
+        /* Transaction history */
         #transactionHistory {
             margin-top: 20px;
             padding: 10px;
-            background: rgba(255, 255, 0.8);
+            background: rgba(255, 255, 255, 0.8);
             border-radius: 10px;
             max-height: 150px;
             overflow-y: auto;
@@ -255,15 +255,15 @@
     <div id="resultPopup"></div>
     <div id="winPoolPopup"></div>
 
-    <!-- Подключаем зависимости через CDN -->
+    <!-- Load dependencies via CDN -->
     <script src="https://unpkg.com/viem@2.21.1/dist/umd/index.js"></script>
     <script src="https://unpkg.com/@abstract-foundation/agw-client@1.5.0/dist/index.umd.js"></script>
     <script>
-        // Проверяем, загрузились ли библиотеки
+        // Check if libraries are loaded
         console.log('Checking if viem is loaded:', typeof window.viem);
         console.log('Checking if AGWClient is loaded:', typeof window.AGWClient);
 
-        // Если библиотеки не загрузились, это вызовет ошибку
+        // If libraries fail to load, this will throw an error
         const { createAbstractClient } = window.AGWClient || {};
         const { http, generatePrivateKey, privateKeyToAccount, parseUnits, formatUnits } = window.viem || {};
 
@@ -290,23 +290,23 @@
 
         // Pool amount (developer can change this value)
         let poolAmount = 1000; // Change this value to update the pool
-        const initialPoolAmount = 1000; // Начальное значение пула для пополнения
+        const initialPoolAmount = 1000; // Initial pool value for refilling
         poolAmountDisplay.textContent = poolAmount;
 
         let maxRange = 10;
         let agwClient = null;
         let userAddress = null;
-        let penguBalance = 0n; // Баланс PENGU (BigInt для точности)
-        let totalSpent = 0; // Общее количество потраченных PENGU
-        let totalWon = 0; // Общее количество выигранных PENGU
-        let penguDecimals = 18; // Предполагаем 18 decimals (будет уточнено через контракт)
+        let penguBalance = 0n; // PENGU balance (BigInt for precision)
+        let totalSpent = 0; // Total amount of PENGU spent
+        let totalWon = 0; // Total amount of PENGU won
+        let penguDecimals = 18; // Assume 18 decimals (will be clarified via contract)
 
-        // Адрес смарт-контракта PENGU
+        // PENGU smart contract address
         const penguContractAddress = '0x9ebe3a824ca958e4b3da772d2065518f009cba62';
-        // Адрес кошелька игры (замени на реальный адрес)
-        const gameWalletAddress = '0xGameWalletAddress'; // TODO: Замени на реальный адрес
+        // Game wallet address (replace with the actual address)
+        const gameWalletAddress = '0xGameWalletAddress'; // TODO: Replace with the actual address
 
-        // Минимальный ABI для ERC-20 токена PENGU
+        // Minimal ABI for ERC-20 token PENGU
         const penguABI = [
             {
                 "constant": true,
@@ -334,9 +334,9 @@
             }
         ];
 
-        // Параметры сети Abstract Mainnet
+        // Abstract Mainnet network parameters
         const abstractMainnet = {
-            id: 2741, // Chain ID из документации
+            id: 2741, // Chain ID from documentation
             name: 'Abstract',
             network: 'abstract-mainnet',
             nativeCurrency: {
@@ -353,7 +353,7 @@
             }
         };
 
-        // Подключение AGW Wallet с отладкой
+        // Connect AGW Wallet with debugging
         connectWalletBtn.addEventListener('click', async () => {
             try {
                 console.log('Step 1: Generating test EOA...');
@@ -414,7 +414,7 @@
             }
         });
 
-        // Функция для добавления записи в историю транзакций
+        // Function to add a transaction to history
         const addTransaction = (message) => {
             const transactionEntry = document.createElement('p');
             transactionEntry.textContent = message;
@@ -422,7 +422,7 @@
             transactionHistory.scrollTop = transactionHistory.scrollHeight;
         };
 
-        // Функция для автоматического пополнения пула
+        // Function to automatically refill the pool
         const refillPool = () => {
             poolAmount = initialPoolAmount;
             poolAmountDisplay.textContent = poolAmount;
@@ -434,7 +434,7 @@
             updateRangeValues();
         };
 
-        // Обновление значений при движении ползунка
+        // Update values when the slider moves
         const updateRangeValues = () => {
             console.log('updateRangeValues called');
             maxRange = parseInt(rangeSlider.value);
@@ -456,7 +456,7 @@
             console.log(`Range updated: ${maxRange}, Chance: ${chance}%, Multiplier: ${multiplier}x, Potential Win: ${potentialWinAmount} Pengu`);
         };
 
-        // Слушатели событий для ползунка
+        // Event listeners for the slider
         rangeSlider.addEventListener('input', () => {
             console.log('Input event triggered');
             updateRangeValues();
@@ -467,17 +467,17 @@
             updateRangeValues();
         });
 
-        // Инициализация значений
+        // Initialize values
         console.log('Initializing range values...');
         updateRangeValues();
 
-        // Логика игры (временная заглушка, пока кошелёк не подключён)
+        // Game logic (temporary placeholder until wallet is connected)
         guessBtn.addEventListener('click', () => {
             resultPopup.textContent = 'Wallet not connected. Please connect your wallet to play.';
             resultPopup.classList.add('visible');
         });
 
-        // Логика кнопки "Play again" (временная заглушка)
+        // Logic for "Play again" button (temporary placeholder)
         playAgainBtn.addEventListener('click', () => {
             guessInput.value = '';
             guessBtn.style.display = 'inline-block';
