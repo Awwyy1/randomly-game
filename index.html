@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RANDOMLY</title>
+    <link href="https://fonts.googleapis.com/css2?family=Chewy&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #d4f4d4, #a8e4a0); /* Salad gradient */
+            font-family: 'Roboto', sans-serif;
+            color: #333;
+            position: relative;
+        }
+
+        .container {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.9); /* Slightly transparent white */
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 90%;
+        }
+
+        /* Pool block */
+        .pool {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(45deg, #a8e4a0, #90ee90); /* Salad gradient */
+            padding: 10px 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            color: white;
+            font-family: 'Chewy', cursive;
+            font-size: 20px;
+            transition: transform 0.3s ease, background 0.5s ease; /* Анимация для пула */
+        }
+
+        .pool span {
+            font-family: 'Roboto', sans-serif;
+            font-weight: bold;
+        }
+
+        .pool.refill {
+            transform: scale(1.1);
+            background: linear-gradient(45deg, #ff6f61, #ff9a8b); /* Цвет при пополнении */
+        }
+
+        h1 {
+            font-family: 'Chewy', cursive;
+            font-size: 48px;
+            margin-bottom: 20px;
+            color: #ff6f61; /* Coral color */
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.2); /* 3D effect */
+            background: linear-gradient(45deg, #ff6f61, #ff9a8b); /* Gradient for bubble effect */
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        h2 {
+            font-size: 20px;
+            margin-bottom: 20px;
+            color: #2a5298;
+        }
+
+        p {
+            margin: 10px 0;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background: linear-gradient(45deg, #a8e4a0, #90ee90); /* Salad gradient for buttons */
+            color: white;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            margin: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        input[type="range"] {
+            width: 100%;
+            margin: 10px 0;
+            -webkit-appearance: none;
+            background: #e0e0e0;
+            border-radius: 10px;
+            height: 10px;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: linear-gradient(45deg, #a8e4a0, #90ee90);
+            border-radius: 50%;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+        }
+
+        input[type="number"] {
+            padding: 8px;
+            margin: 10px;
+            width: 100px;
+            border: none;
+            border-radius: 10px;
+            background: #f0f0f0;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        #winMultiplier, #potentialWin {
+            color: #ff6f61;
+            font-weight: bold;
+        }
+
+        /* Анимация для потенциального выигрыша */
+        #potentialWin {
+            transition: color 0.3s ease, transform 0.3s ease;
+        }
+
+        #potentialWin.update {
+            transform: scale(1.1);
+            color: #2a5298;
+        }
+
+        /* Анимация для статуса кошелька */
+        #walletStatus, #penguBalance {
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+
+        #walletStatus.visible, #penguBalance.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Анимация для списания PENGU */
+        #penguBalance.spend {
+            color: #ff6f61;
+            transform: scale(1.1);
+            transition: color 0.3s ease, transform 0.3s ease;
+        }
+
+        /* Result popup */
+        #resultPopup {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            display: none;
+            z-index: 1000;
+            text-align: center;
+            max-width: 80%;
+            opacity: 0;
+            transform: translateX(-50%) translateY(20px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+
+        #resultPopup.visible {
+            display: block;
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* Win pool popup */
+        #winPoolPopup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.8);
+            background: linear-gradient(45deg, #a8e4a0, #90ee90); /* Salad gradient */
+            color: white;
+            padding: 20px 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            display: none;
+            z-index: 2000;
+            text-align: center;
+            font-family: 'Chewy', cursive;
+            font-size: 24px;
+            opacity: 0;
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+
+        #winPoolPopup.visible {
+            display: block;
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        /* История транзакций */
+        #transactionHistory {
+            margin-top: 20px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+            max-height: 150px;
+            overflow-y: auto;
+            font-size: 14px;
+            text-align: left;
+        }
+
+        #transactionHistory p {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="pool">
+        Pool: <span id="poolAmount">1000</span> Pengu
+    </div>
+    <div class="container">
+        <h1>RANDOMLY</h1>
+        <p id="walletStatus">Wallet: Not connected</p>
+        <p id="penguBalance">Pengu Balance: 0</p>
+        <button id="connectWalletBtn">Connect AGW Wallet</button>
+        <h2>Choose a number from 1 to 10</h2>
+        <p>Choose range: 1 - <span id="rangeValue">10</span></p>
+        <input type="range" id="rangeSlider" min="1" max="10" value="10">
+        <p>Your chance: <span id="winChance">10</span>%</p>
+        <p>Win multiplier: <span id="winMultiplier">1.0</span>x</p>
+        <p>Potential win: <span id="potentialWin">0</span> Pengu</p>
+        <p>Cost to play: 5 Pengu per attempt</p>
+        <p>Your number:</p>
+        <input type="number" id="guessInput" min="1" placeholder="Enter a number">
+        <button id="guessBtn" disabled>Play (5 Pengu)</button>
+        <button id="playAgainBtn" style="display: none;">Play again (5 Pengu)</button>
+        <div id="transactionHistory">
+            <p>Transaction History:</p>
+        </div>
+    </div>
+    <div id="resultPopup"></div>
+    <div id="winPoolPopup"></div>
+
+    <!-- Подключаем зависимости через CDN -->
+    <script src="https://unpkg.com/viem@2.21.1/dist/umd/index.js"></script>
+    <script src="https://unpkg.com/@abstract-foundation/agw-client@1.5.0/dist/index.umd.js"></script>
+    <script>
+        // Проверяем, загрузились ли библиотеки
+        console.log('Checking if viem is loaded:', typeof window.viem);
+        console.log('Checking if AGWClient is loaded:', typeof window.AGWClient);
+
+        // Если библиотеки не загрузились, это вызовет ошибку
+        const { createAbstractClient } = window.AGWClient || {};
+        const { http, generatePrivateKey, privateKeyToAccount, parseUnits, formatUnits } = window.viem || {};
+
+        if (!createAbstractClient || !http || !generatePrivateKey || !privateKeyToAccount || !parseUnits || !formatUnits) {
+            console.error('Required libraries (viem or AGWClient) failed to load. Please check CDN links.');
+        }
+
+        const rangeSlider = document.getElementById('rangeSlider');
+        const rangeValue = document.getElementById('rangeValue');
+        const winChance = document.getElementById('winChance');
+        const winMultiplier = document.getElementById('winMultiplier');
+        const potentialWin = document.getElementById('potentialWin');
+        const guessInput = document.getElementById('guessInput');
+        const guessBtn = document.getElementById('guessBtn');
+        const playAgainBtn = document.getElementById('playAgainBtn');
+        const resultPopup = document.getElementById('resultPopup');
+        const winPoolPopup = document.getElementById('winPoolPopup');
+        const poolAmountDisplay = document.getElementById('poolAmount');
+        const poolElement = document.querySelector('.pool');
+        const connectWalletBtn = document.getElementById('connectWalletBtn');
+        const walletStatus = document.getElementById('walletStatus');
+        const penguBalanceDisplay = document.getElementById('penguBalance');
+        const transactionHistory = document.getElementById('transactionHistory');
+
+        // Pool amount (developer can change this value)
+        let poolAmount = 1000; // Change this value to update the pool
+        const initialPoolAmount = 1000; // Начальное значение пула для пополнения
+        poolAmountDisplay.textContent = poolAmount;
+
+        let maxRange = 10;
+        let agwClient = null;
+        let userAddress = null;
+        let penguBalance = 0n; // Баланс PENGU (BigInt для точности)
+        let totalSpent = 0; // Общее количество потраченных PENGU
+        let totalWon = 0; // Общее количество выигранных PENGU
+        let penguDecimals = 18; // Предполагаем 18 decimals (будет уточнено через контракт)
+
+        // Адрес смарт-контракта PENGU
+        const penguContractAddress = '0x9ebe3a824ca958e4b3da772d2065518f009cba62';
+        // Адрес кошелька игры (замени на реальный адрес)
+        const gameWalletAddress = '0xGameWalletAddress'; // TODO: Замени на реальный адрес
+
+        // Минимальный ABI для ERC-20 токена PENGU
+        const penguABI = [
+            {
+                "constant": true,
+                "inputs": [],
+                "name": "decimals",
+                "outputs": [{ "name": "", "type": "uint8" }],
+                "type": "function"
+            },
+            {
+                "constant": true,
+                "inputs": [{ "name": "_owner", "type": "address" }],
+                "name": "balanceOf",
+                "outputs": [{ "name": "balance", "type": "uint256" }],
+                "type": "function"
+            },
+            {
+                "constant": false,
+                "inputs": [
+                    { "name": "_to", "type": "address" },
+                    { "name": "_value", "type": "uint256" }
+                ],
+                "name": "transfer",
+                "outputs": [{ "name": "success", "type": "bool" }],
+                "type": "function"
+            }
+        ];
+
+        // Параметры сети Abstract Mainnet
+        const abstractMainnet = {
+            id: 2741, // Chain ID из документации
+            name: 'Abstract',
+            network: 'abstract-mainnet',
+            nativeCurrency: {
+                name: 'ETH',
+                symbol: 'ETH',
+                decimals: 18
+            },
+            rpcUrls: {
+                default: { http: ['https://api.mainnet.abs.xyz'] },
+                public: { http: ['https://api.mainnet.abs.xyz'] }
+            },
+            blockExplorers: {
+                default: { name: 'Abstract Explorer', url: 'https://abscan.org/' }
+            }
+        };
+
+        // Подключение AGW Wallet с отладкой (временно закомментировано)
+        connectWalletBtn.addEventListener('click', async () => {
+            console.log('Connect Wallet button clicked');
+            resultPopup.textContent = 'Wallet connection logic is temporarily disabled for debugging.';
+            resultPopup.classList.add('visible');
+
+            /*
+            try {
+                console.log('Step 1: Generating test EOA...');
+                const privateKey = generatePrivateKey();
+                const signer = privateKeyToAccount(privateKey);
+                console.log('Test EOA generated:', signer.address);
+
+                console.log('Step 2: Creating AGW client...');
+                agwClient = await createAbstractClient({
+                    signer,
+                    chain: abstractMainnet,
+                    transport: http()
+                });
+                console.log('AGW client created:', agwClient);
+
+                console.log('Step 3: Getting user address...');
+                userAddress = agwClient.account.address;
+                walletStatus.textContent = `Wallet: Connected (${userAddress.slice(0, 6)}...)`;
+                walletStatus.classList.add('visible');
+                console.log('User address:', userAddress);
+
+                console.log('Step 4: Fetching PENGU decimals...');
+                penguDecimals = await agwClient.readContract({
+                    abi: penguABI,
+                    address: penguContractAddress,
+                    functionName: 'decimals',
+                    args: []
+                });
+                console.log('PENGU decimals:', penguDecimals);
+
+                console.log('Step 5: Fetching PENGU balance...');
+                penguBalance = await agwClient.readContract({
+                    abi: penguABI,
+                    address: penguContractAddress,
+                    functionName: 'balanceOf',
+                    args: [userAddress]
+                });
+                console.log('PENGU balance (raw):', penguBalance);
+
+                const formattedBalance = formatUnits(penguBalance, penguDecimals);
+                penguBalanceDisplay.textContent = `Pengu Balance: ${formattedBalance}`;
+                penguBalanceDisplay.classList.add('visible');
+                console.log('Formatted balance:', formattedBalance);
+
+                const costToPlay = parseUnits('5', penguDecimals);
+                if (penguBalance >= costToPlay) {
+                    guessBtn.disabled = false;
+                    console.log('Balance sufficient, enabling play button.');
+                } else {
+                    resultPopup.textContent = 'Insufficient Pengu balance! You need at least 5 Pengu to play.';
+                    resultPopup.classList.add('visible');
+                    console.log('Insufficient balance.');
+                }
+            } catch (error) {
+                console.error('Wallet connection failed at step:', error);
+                resultPopup.textContent = `Failed to connect AGW Wallet: ${error.message}`;
+                resultPopup.classList.add('visible');
+            }
+            */
+        });
+
+        // Функция для добавления записи в историю транзакций
+        const addTransaction = (message) => {
+            const transactionEntry = document.createElement('p');
+            transactionEntry.textContent = message;
+            transactionHistory.appendChild(transactionEntry);
+            transactionHistory.scrollTop = transactionHistory.scrollHeight;
+        };
+
+        // Функция для автоматического пополнения пула
+        const refillPool = () => {
+            poolAmount = initialPoolAmount;
+            poolAmountDisplay.textContent = poolAmount;
+            poolElement.classList.add('refill');
+            resultPopup.textContent = `Pool has been refilled to ${initialPoolAmount} Pengu!`;
+            resultPopup.classList.add('visible');
+            guessBtn.style.display = 'inline-block';
+            playAgainBtn.style.display = 'none';
+            updateRangeValues();
+        };
+
+        // Обновление значений при движении ползунка
+        const updateRangeValues = () => {
+            console.log('updateRangeValues called'); // Отладка
+            maxRange = parseInt(rangeSlider.value);
+            console.log('Slider value changed to:', maxRange);
+
+            rangeValue.textContent = maxRange;
+            const chance = (1 / maxRange * 100).toFixed(1);
+            winChance.textContent = chance;
+            const multiplier = (maxRange / 10).toFixed(1);
+            winMultiplier.textContent = multiplier;
+            const potentialWinAmount = Math.round(poolAmount * parseFloat(multiplier));
+            potentialWin.textContent = potentialWinAmount;
+            potentialWin.classList.add('update');
+            guessInput.value = '';
+            guessInput.max = maxRange;
+            playAgainBtn.style.display = 'none';
+            resultPopup.classList.remove('visible');
+            winPoolPopup.classList.remove('visible');
+            console.log(`Range updated: ${maxRange}, Chance: ${chance}%, Multiplier: ${multiplier}x, Potential Win: ${potentialWinAmount} Pengu`);
+        };
+
+        // Слушатели событий для ползунка
+        rangeSlider.addEventListener('input', () => {
+            console.log('Input event triggered');
+            updateRangeValues();
+        });
+
+        rangeSlider.addEventListener('change', () => {
+            console.log('Change event triggered');
+            updateRangeValues();
+        });
+
+        // Инициализация значений
+        console.log('Initializing range values...');
+        updateRangeValues();
+
+        // Логика игры (временная заглушка, пока кошелёк не подключён)
+        guessBtn.addEventListener('click', () => {
+            resultPopup.textContent = 'Wallet not connected. Please connect your wallet to play.';
+            resultPopup.classList.add('visible');
+        });
+
+        // Логика кнопки "Play again" (временная заглушка)
+        playAgainBtn.addEventListener('click', () => {
+            guessInput.value = '';
+            guessBtn.style.display = 'inline-block';
+            playAgainBtn.style.display = 'none';
+            resultPopup.classList.remove('visible');
+            winPoolPopup.classList.remove('visible');
+        });
+    </script>
+</body>
+</html>
