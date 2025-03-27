@@ -256,14 +256,23 @@
     <div id="winPoolPopup"></div>
 
     <!-- Load dependencies via CDN -->
-    <script src="https://unpkg.com/viem@1.21.0/dist/umd/index.js"></script>
+    <script src="https://unpkg.com/viem@1.0.0/dist/umd/index.js"></script>
     <script src="https://unpkg.com/@abstract-foundation/agw-client@1.5.0/dist/index.umd.js"></script>
     <script>
+        // Get resultPopup element early to avoid ReferenceError
+        const resultPopup = document.getElementById('resultPopup');
+
         // Check if libraries are loaded
         console.log('Checking if viem is loaded:', typeof window.viem);
         console.log('Checking if AGWClient is loaded:', typeof window.AGWClient);
 
-        // If libraries fail to load, this will throw an error
+        // Additional debug: Check if scripts are loaded
+        const viemScript = document.querySelector('script[src="https://unpkg.com/viem@1.0.0/dist/umd/index.js"]');
+        const agwScript = document.querySelector('script[src="https://unpkg.com/@abstract-foundation/agw-client@1.5.0/dist/index.umd.js"]');
+        console.log('Viem script element:', viemScript);
+        console.log('AGWClient script element:', agwScript);
+
+        // If libraries fail to load, show an error
         const { createAbstractClient } = window.AGWClient || {};
         const { http, generatePrivateKey, privateKeyToAccount, parseUnits, formatUnits } = window.viem || {};
 
@@ -276,13 +285,12 @@
 
         const rangeSlider = document.getElementById('rangeSlider');
         const rangeValue = document.getElementById('rangeValue');
-        const winChance = document.getElement byId('winChance');
+        const winChance = document.getElementById('winChance');
         const winMultiplier = document.getElementById('winMultiplier');
         const potentialWin = document.getElementById('potentialWin');
         const guessInput = document.getElementById('guessInput');
         const guessBtn = document.getElementById('guessBtn');
         const playAgainBtn = document.getElementById('playAgainBtn');
-        const resultPopup = document.getElementById('resultPopup');
         const winPoolPopup = document.getElementById('winPoolPopup');
         const poolAmountDisplay = document.getElementById('poolAmount');
         const poolElement = document.querySelector('.pool');
@@ -358,6 +366,7 @@
 
         // Connect AGW Wallet with debugging
         connectWalletBtn.addEventListener('click', async () => {
+            console.log('Connect Wallet button clicked!');
             try {
                 console.log('Step 1: Generating test EOA...');
                 const privateKey = generatePrivateKey();
