@@ -235,7 +235,7 @@
     <div class="container">
         <h1>RANDOMLY</h1>
         <p id="walletStatus">Wallet: Not connected</p>
-        <p id="penguBalance">Pengu Balance: 0</p>
+        <p id="penguBalance">Pengu Balance: 100</p>
         <button id="connectWalletBtn">Connect AGW Wallet</button>
         <h2>Choose a number from 1 to 10</h2>
         <p>Choose range: 1 - <span id="rangeValue">10</span></p>
@@ -255,34 +255,7 @@
     <div id="resultPopup"></div>
     <div id="winPoolPopup"></div>
 
-    <!-- Load dependencies via CDN -->
-    <script src="https://unpkg.com/viem@1.0.0/dist/umd/index.js"></script>
-    <script src="https://unpkg.com/@abstract-foundation/agw-client@1.5.0/dist/index.umd.js"></script>
     <script>
-        // Get resultPopup element early to avoid ReferenceError
-        const resultPopup = document.getElementById('resultPopup');
-
-        // Check if libraries are loaded
-        console.log('Checking if viem is loaded:', typeof window.viem);
-        console.log('Checking if AGWClient is loaded:', typeof window.AGWClient);
-
-        // Additional debug: Check if scripts are loaded
-        const viemScript = document.querySelector('script[src="https://unpkg.com/viem@1.0.0/dist/umd/index.js"]');
-        const agwScript = document.querySelector('script[src="https://unpkg.com/@abstract-foundation/agw-client@1.5.0/dist/index.umd.js"]');
-        console.log('Viem script element:', viemScript);
-        console.log('AGWClient script element:', agwScript);
-
-        // If libraries fail to load, show an error
-        const { createAbstractClient } = window.AGWClient || {};
-        const { http, generatePrivateKey, privateKeyToAccount, parseUnits, formatUnits } = window.viem || {};
-
-        if (!createAbstractClient || !http || !generatePrivateKey || !privateKeyToAccount || !parseUnits || !formatUnits) {
-            console.error('Required libraries (viem or AGWClient) failed to load. Please check CDN links.');
-            resultPopup.textContent = 'Failed to load required libraries. Please refresh the page.';
-            resultPopup.classList.add('visible');
-            throw new Error('Library loading failed');
-        }
-
         const rangeSlider = document.getElementById('rangeSlider');
         const rangeValue = document.getElementById('rangeValue');
         const winChance = document.getElementById('winChance');
@@ -291,6 +264,7 @@
         const guessInput = document.getElementById('guessInput');
         const guessBtn = document.getElementById('guessBtn');
         const playAgainBtn = document.getElementById('playAgainBtn');
+        const resultPopup = document.getElementById('resultPopup');
         const winPoolPopup = document.getElementById('winPoolPopup');
         const poolAmountDisplay = document.getElementById('poolAmount');
         const poolElement = document.querySelector('.pool');
@@ -305,125 +279,32 @@
         poolAmountDisplay.textContent = poolAmount;
 
         let maxRange = 10;
-        let agwClient = null;
-        let userAddress = null;
-        let penguBalance = 0n; // PENGU balance (BigInt for precision)
+        let isWalletConnected = false;
+        let penguBalance = 100; // Тестовый баланс PENGU
         let totalSpent = 0; // Total amount of PENGU spent
         let totalWon = 0; // Total amount of PENGU won
-        let penguDecimals = 18; // Assume 18 decimals (will be clarified via contract)
 
-        // PENGU smart contract address
-        const penguContractAddress = '0x9ebe3a824ca958e4b3da772d2065518f009cba62';
-        // Game wallet address (replace with the actual address)
-        const gameWalletAddress = '0xGameWalletAddress'; // TODO: Replace with the actual address
+        // Обновляем отображение баланса
+        penguBalanceDisplay.textContent = `Pengu Balance: ${penguBalance}`;
+        penguBalanceDisplay.classList.add('visible');
 
-        // Minimal ABI for ERC-20 token PENGU
-        const penguABI = [
-            {
-                "constant": true,
-                "inputs": [],
-                "name": "decimals",
-                "outputs": [{ "name": "", "type": "uint8" }],
-                "type": "function"
-            },
-            {
-                "constant": true,
-                "inputs": [{ "name": "_owner", "type": "address" }],
-                "name": "balanceOf",
-                "outputs": [{ "name": "balance", "type": "uint256" }],
-                "type": "function"
-            },
-            {
-                "constant": false,
-                "inputs": [
-                    { "name": "_to", "type": "address" },
-                    { "name": "_value", "type": "uint256" }
-                ],
-                "name": "transfer",
-                "outputs": [{ "name": "success", "type": "bool" }],
-                "type": "function"
-            }
-        ];
-
-        // Abstract Mainnet network parameters
-        const abstractMainnet = {
-            id: 2741, // Chain ID from documentation
-            name: 'Abstract',
-            network: 'abstract-mainnet',
-            nativeCurrency: {
-                name: 'ETH',
-                symbol: 'ETH',
-                decimals: 18
-            },
-            rpcUrls: {
-                default: { http: ['https://api.mainnet.abs.xyz'] },
-                public: { http: ['https://api.mainnet.abs.xyz'] }
-            },
-            blockExplorers: {
-                default: { name: 'Abstract Explorer', url: 'https://abscan.org/' }
-            }
-        };
-
-        // Connect AGW Wallet with debugging
-        connectWalletBtn.addEventListener('click', async () => {
+        // Тестовое подключение кошелька
+        connectWalletBtn.addEventListener('click', () => {
             console.log('Connect Wallet button clicked!');
-            try {
-                console.log('Step 1: Generating test EOA...');
-                const privateKey = generatePrivateKey();
-                console.log('Private key generated:', privateKey);
-                const signer = privateKeyToAccount(privateKey);
-                console.log('Test EOA generated:', signer.address);
+            isWalletConnected = true;
+            walletStatus.textContent = `Wallet: Connected (Test Wallet)`;
+            walletStatus.classList.add('visible');
+            addTransaction('Wallet connected (Test Wallet)');
 
-                console.log('Step 2: Creating AGW client...');
-                agwClient = await createAbstractClient({
-                    signer,
-                    chain: abstractMainnet,
-                    transport: http()
-                });
-                console.log('AGW client created:', agwClient);
-
-                console.log('Step 3: Getting user address...');
-                userAddress = agwClient.account.address;
-                walletStatus.textContent = `Wallet: Connected (${userAddress.slice(0, 6)}...)`;
-                walletStatus.classList.add('visible');
-                console.log('User address:', userAddress);
-
-                console.log('Step 4: Fetching PENGU decimals...');
-                penguDecimals = await agwClient.readContract({
-                    abi: penguABI,
-                    address: penguContractAddress,
-                    functionName: 'decimals',
-                    args: []
-                });
-                console.log('PENGU decimals:', penguDecimals);
-
-                console.log('Step 5: Fetching PENGU balance...');
-                penguBalance = await agwClient.readContract({
-                    abi: penguABI,
-                    address: penguContractAddress,
-                    functionName: 'balanceOf',
-                    args: [userAddress]
-                });
-                console.log('PENGU balance (raw):', penguBalance);
-
-                const formattedBalance = formatUnits(penguBalance, penguDecimals);
-                penguBalanceDisplay.textContent = `Pengu Balance: ${formattedBalance}`;
-                penguBalanceDisplay.classList.add('visible');
-                console.log('Formatted balance:', formattedBalance);
-
-                const costToPlay = parseUnits('5', penguDecimals);
-                if (penguBalance >= costToPlay) {
-                    guessBtn.disabled = false;
-                    console.log('Balance sufficient, enabling play button.');
-                } else {
-                    resultPopup.textContent = 'Insufficient Pengu balance! You need at least 5 Pengu to play.';
-                    resultPopup.classList.add('visible');
-                    console.log('Insufficient balance.');
-                }
-            } catch (error) {
-                console.error('Wallet connection failed at step:', error);
-                resultPopup.textContent = `Failed to connect AGW Wallet: ${error.message}`;
+            // Проверяем баланс и активируем кнопку Play
+            const costToPlay = 5;
+            if (penguBalance >= costToPlay) {
+                guessBtn.disabled = false;
+                console.log('Balance sufficient, enabling play button.');
+            } else {
+                resultPopup.textContent = 'Insufficient Pengu balance! You need at least 5 Pengu to play.';
                 resultPopup.classList.add('visible');
+                console.log('Insufficient balance.');
             }
         });
 
@@ -484,19 +365,92 @@
         console.log('Initializing range values...');
         updateRangeValues();
 
-        // Game logic (temporary placeholder until wallet is connected)
+        // Game logic
         guessBtn.addEventListener('click', () => {
-            resultPopup.textContent = 'Wallet not connected. Please connect your wallet to play.';
-            resultPopup.classList.add('visible');
+            if (!isWalletConnected) {
+                resultPopup.textContent = 'Wallet not connected. Please connect your wallet to play.';
+                resultPopup.classList.add('visible');
+                return;
+            }
+
+            const costToPlay = 5;
+            if (penguBalance < costToPlay) {
+                resultPopup.textContent = 'Insufficient Pengu balance! You need at least 5 Pengu to play.';
+                resultPopup.classList.add('visible');
+                return;
+            }
+
+            const userGuess = parseInt(guessInput.value);
+            if (!userGuess || userGuess < 1 || userGuess > maxRange) {
+                resultPopup.textContent = `Please enter a number between 1 and ${maxRange}.`;
+                resultPopup.classList.add('visible');
+                return;
+            }
+
+            // Снимаем стоимость игры
+            penguBalance -= costToPlay;
+            totalSpent += costToPlay;
+            penguBalanceDisplay.textContent = `Pengu Balance: ${penguBalance}`;
+            penguBalanceDisplay.classList.add('spend');
+            addTransaction(`Spent ${costToPlay} Pengu to play`);
+
+            // Генерируем случайное число
+            const winningNumber = Math.floor(Math.random() * maxRange) + 1;
+            console.log(`Winning number: ${winningNumber}, User guess: ${userGuess}`);
+
+            // Проверяем, угадал ли пользователь
+            if (userGuess === winningNumber) {
+                const multiplier = parseFloat(winMultiplier.textContent);
+                const winAmount = Math.round(poolAmount * multiplier);
+                penguBalance += winAmount;
+                totalWon += winAmount;
+                poolAmount -= winAmount;
+                poolAmountDisplay.textContent = poolAmount;
+                addTransaction(`Won ${winAmount} Pengu!`);
+                resultPopup.textContent = `Congratulations! You guessed the number ${winningNumber} and won ${winAmount} Pengu!`;
+                resultPopup.classList.add('visible');
+
+                // Проверяем, не опустел ли пул
+                if (poolAmount <= 0) {
+                    winPoolPopup.textContent = `You won the entire pool!`;
+                    winPoolPopup.classList.add('visible');
+                    setTimeout(refillPool, 2000);
+                }
+            } else {
+                resultPopup.textContent = `Sorry, the winning number was ${winningNumber}. Try again!`;
+                resultPopup.classList.add('visible');
+            }
+
+            // Обновляем баланс и кнопки
+            penguBalanceDisplay.textContent = `Pengu Balance: ${penguBalance}`;
+            guessBtn.style.display = 'none';
+            playAgainBtn.style.display = 'inline-block';
+
+            // Проверяем, достаточно ли баланса для следующей игры
+            if (penguBalance < costToPlay) {
+                playAgainBtn.disabled = true;
+                resultPopup.textContent = 'Insufficient Pengu balance! You need at least 5 Pengu to play again.';
+                resultPopup.classList.add('visible');
+            }
         });
 
-        // Logic for "Play again" button (temporary placeholder)
+        // Logic for "Play again" button
         playAgainBtn.addEventListener('click', () => {
             guessInput.value = '';
             guessBtn.style.display = 'inline-block';
             playAgainBtn.style.display = 'none';
             resultPopup.classList.remove('visible');
             winPoolPopup.classList.remove('visible');
+
+            // Проверяем баланс
+            const costToPlay = 5;
+            if (penguBalance < costToPlay) {
+                guessBtn.disabled = true;
+                resultPopup.textContent = 'Insufficient Pengu balance! You need at least 5 Pengu to play.';
+                resultPopup.classList.add('visible');
+            } else {
+                guessBtn.disabled = false;
+            }
         });
     </script>
 </body>
